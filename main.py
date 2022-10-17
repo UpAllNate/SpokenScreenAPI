@@ -41,7 +41,7 @@ def authenticate(username,password):
 
 @app.route('/')
 def index():
-    return 'UP ALL NATE API BEWARE'
+    return "You're using the API wrong if you can see this"
 
 @app.post('/create_user')
 def hello():
@@ -53,6 +53,23 @@ def hello():
         try:
             create_user.create_user(data["data"]["username"],data["data"]["password"],data["data"]["groupname"])
             return {"result":"user created"}
+
+        except KeyError as e:
+
+            return {"result":f"You haven't provided the necessary key {e}"}
+    else:
+        return {"result":"UnAuthroized"}
+
+@app.post('/delete_user')
+def hello():
+
+    data=json.loads(request.data.decode())
+    username=data["authentication"]["username"]
+    password=data["authentication"]["password"]
+    if authenticate(username,password):
+        try:
+            delete_user.delete_user(data["data"]["username"])
+            return {"result":"user deleted"}
 
         except KeyError as e:
 
