@@ -44,7 +44,7 @@ def index():
     return "You're using the API wrong if you can see this"
 
 @app.post('/create_user')
-def hello():
+def cmd_createUser():
 
     data=json.loads(request.data.decode())
     username=data["authentication"]["username"]
@@ -61,7 +61,7 @@ def hello():
         return {"result":"UnAuthroized"}
 
 @app.post('/delete_user')
-def hello():
+def cmd_deleteUser():
 
     data=json.loads(request.data.decode())
     username=data["authentication"]["username"]
