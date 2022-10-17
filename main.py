@@ -4,6 +4,8 @@ import json
 import create_user
 import delete_user
 import postgres
+import os
+
 app = Flask(__name__)
 
 def authenticate(username,password):
@@ -37,7 +39,6 @@ def authenticate(username,password):
         connection.close()
         return False
 
-
 @app.route('/')
 def index():
     return 'UP ALL NATE API BEWARE'
@@ -50,7 +51,6 @@ def hello():
     password=data["authentication"]["password"]
     if authenticate(username,password):
         try:
-            print("after authenticate")
             create_user.create_user(data["data"]["username"],data["data"]["password"],data["data"]["groupname"])
             return {"result":"user created"}
 
@@ -59,5 +59,24 @@ def hello():
             return {"result":f"You haven't provided the necessary key {e}"}
     else:
         return {"result":"UnAuthroized"}
+
+@app.get('/update_api')
+def update_api():
+
+
+    data=json.loads(request.data.decode())
+    username=data["authentication"]["username"]
+    password=data["authentication"]["password"]
+    if authenticate(username,password):
+        try:
+            output=(os.system('git pull'))
+            return {"result":f"command ran {output}"}
+
+        except KeyError as e:
+
+            return {"result":f"You haven't provided the necessary key {e}"}
+    else:
+        return {"result":"UnAuthroized"}
+
     # print(data["username"],data["password"])
     # return 'Hello, World'
