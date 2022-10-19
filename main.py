@@ -1,35 +1,30 @@
-from flask import Flask
-from flask import request
+from flask import Flask, request, Response
 import json
 import create_user
 import delete_user
 import postgres
 import os
+import bcrypt
+from dotenv import load_dotenv
+
+load_dotenv()
+
+secret_salt = os.getenv("SECRET_SALT")
 
 app = Flask(__name__)
 
 def authenticate(username,password):
     connection=postgres.get_connection()
     cursor=connection.cursor()
-    cursor.execute("SELECT username,password,groupid FROM users WHERE username=%s",(username,))
+    cursor.execute("SELECT username,password FROM users WHERE username=%s",(username,))
     returned_data=cursor.fetchall()
     if len(returned_data)==1:
-        print(returned_data)
-        returned_username=returned_data[0][0]
         returned_password=returned_data[0][1]
-        groupid=returned_data[0][2]
-        if returned_password==password:
-            cursor.execute("SELECT permissions FROM usergroups WHERE groupid=%s",(groupid,))
-            returned_group_permission=cursor.fetchall()
-            print(returned_group_permission)
-            if returned_group_permission[0][0]==777:
-                cursor.close()
-                connection.close()
-                return True
-            else:
-                cursor.close()
-                connection.close()
-                return False
+        encodedSaltPW = (password + secret_salt).encode('utf-8')
+        if bcrypt.checkpw(encodedSaltPW, returned_password.encode('utf-8')):
+            cursor.close()
+            connection.close()
+            return True
         else:
             cursor.close()
             connection.close()
@@ -97,3 +92,14 @@ def update_api():
 
     # print(data["username"],data["password"])
     # return 'Hello, World'
+
+@app.get('/login')
+def login_user():
+
+    data=json.loads(request.data.decode())
+    username=data["authentication"]["username"]
+    password=data["authentication"]["password"]
+    if authenticate(username,password):
+        return {"result":"logged in"}
+    else:
+        return {"result":"authentication failed"}
