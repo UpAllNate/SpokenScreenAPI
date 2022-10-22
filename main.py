@@ -1,17 +1,23 @@
 from flask import Flask, request, Response
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 import json
 import create_user
 import delete_user
 import postgres
 import os
 import bcrypt
+
 from dotenv import load_dotenv
-
 load_dotenv()
-
 secret_salt = os.getenv("SECRET_SALT")
 
 app = Flask(__name__)
+
+limiter = Limiter(
+    app,
+    key_func=get_remote_address
+)
 
 def authenticate(username,password):
     connection=postgres.get_connection()
@@ -35,10 +41,12 @@ def authenticate(username,password):
         return False
 
 @app.route('/')
+@limiter.limit("3 per hour")
 def index():
     return "You're using the API wrong if you can see this"
 
 @app.post('/create_user')
+@limiter.limit("3 per minute")
 def cmd_createUser():
 
     data=json.loads(request.data.decode())
@@ -56,6 +64,7 @@ def cmd_createUser():
         return {"result":"UnAuthroized"}
 
 @app.post('/delete_user')
+@limiter.limit("3 per minute")
 def cmd_deleteUser():
 
     data=json.loads(request.data.decode())
@@ -73,6 +82,7 @@ def cmd_deleteUser():
         return {"result":"UnAuthroized"}
 
 @app.get('/update_api')
+@limiter.limit("1 per minute")
 def update_api():
 
 
@@ -94,6 +104,7 @@ def update_api():
     # return 'Hello, World'
 
 @app.get('/login')
+@limiter.limit("2 per minute")
 def login_user():
 
     data=json.loads(request.data.decode())

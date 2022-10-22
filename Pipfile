@@ -9,6 +9,7 @@ psycopg2-binary = "*"
 python-dotenv = "*"
 requests = "*"
 bcrypt = "*"
+flask-limiter = "*"
 
 [dev-packages]
 
